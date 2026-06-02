@@ -11,6 +11,11 @@ except ImportError:
     import openai
     OpenAI = None
 
+try:
+    from elevenlabs.client import ElevenLabs
+except ImportError:
+    ElevenLabs = None
+
 
 def load_openai_api_key() -> str:
     api_key = os.getenv("OPENAI_API_KEY")
@@ -181,6 +186,56 @@ def synthesize_text_to_speech(
         output_path.write_bytes(response.read())
     else:
         raise TypeError(f'Unexpected TTS response type: {type(response)}')
+    return output_path
+
+
+def synthesize_with_elevenlabs(
+    text: str,
+    output_file_path: str,
+    voice_id: str,
+    model_id: str = "eleven_multilingual_v2",
+) -> Path:
+    """Generate speech audio from text using ElevenLabs TTS.
+
+    Args:
+        text: The text to synthesize.
+        output_file_path: Path to write the generated audio file.
+        voice_id: The ElevenLabs voice ID to use.
+        model_id: The ElevenLabs model ID to use (default: eleven_multilingual_v2).
+
+    Returns:
+        Path to the written audio file.
+
+    Raises:
+        EnvironmentError: If ELEVENLABS_API_KEY is not set in the environment.
+        ImportError: If the elevenlabs package is not installed.
+    """
+    if ElevenLabs is None:
+        raise ImportError(
+            "elevenlabs package is required. Install it with: pip install elevenlabs"
+        )
+
+    api_key = os.getenv("ELEVENLABS_API_KEY")
+    if not api_key:
+        raise EnvironmentError("ELEVENLABS_API_KEY must be set in the environment.")
+
+    client = ElevenLabs(api_key=api_key)
+
+    # Generate the speech audio
+    audio_generator = client.text_to_speech.convert(
+        text=text,
+        voice_id=voice_id,
+        model_id=model_id,
+    )
+
+    output_path = Path(output_file_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Save the generated audio stream to file
+    with output_path.open("wb") as f:
+        for chunk in audio_generator:
+            f.write(chunk)
+
     return output_path
 
 
