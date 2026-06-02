@@ -7,6 +7,8 @@ This repository contains a simple audiobook generation workflow using OpenAI-com
 - `notebooks/`
   - `audiobook_demo.ipynb` — demo of audio generation for a sample synopsis and full story.
   - `audiobook_workflow.ipynb` — workflow notebook for text review, preview audio, and full audio generation.
+  - `audiobook_workflow.ipynb` — workflow notebook for text review, preview audio, and full audio generation.
+  - `audiobook_workflow_elevenlabs.ipynb` — same workflow but uses ElevenLabs TTS (voice test, preview, and full audio synthesis).
 - `output/`
   - stores generated sample and full story audio files.
 - `sample_voices/`
@@ -51,6 +53,30 @@ export OPENAI_API_KEY="your_api_key_here"
 ## Usage
 
 Open one of the notebooks in `notebooks/` and run the cells step by step.
+
+### `notebooks/audiobook_workflow_elevenlabs.ipynb`
+
+1. Load libraries, configuration, and paths. This notebook expects two ElevenLabs-specific environment variables in addition to your OpenAI key:
+
+  - `ELEVENLABS_API_KEY` — your ElevenLabs API key
+  - `ELEVENLABS_VOICE_ID` — the voice identifier to use for synthesis
+
+  Add them to your local `.env` file, for example:
+
+  ```bash
+  export ELEVENLABS_API_KEY="your_elevenlabs_api_key"
+  export ELEVENLABS_VOICE_ID="your_preferred_voice_id"
+  ```
+
+2. Test the configured voice using the provided short sentence cell. The notebook writes a test MP3 to `output/test_voice_elevenlabs.mp3` and plays it inline.
+
+3. Generate story text from the prompt and `audiobook_prd.md` (no audio yet). Review and edit the text as needed.
+
+4. Create a short preview audio (first ~30 sentences) using ElevenLabs. The preview file path is `output/sample_story_preview_elevenlabs.mp3`.
+
+5. If the preview sounds good, synthesize the full story audio. The full file path is `output/full_story_elevenlabs.mp3`.
+
+Notes: `whisper_client.py` includes a helper `synthesize_with_elevenlabs(...)` used by the notebook to call the ElevenLabs TTS API.
 
 ### `notebooks/audiobook_workflow.ipynb`
 
